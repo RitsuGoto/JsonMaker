@@ -4,8 +4,6 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-
-	//"io/ioutil"
 	"os"
 	"strings"
 )
@@ -19,10 +17,11 @@ type Holder struct {
 }
 
 type ToJson struct {
-	Value []Holder
+	Value map[string][]Holder
 }
 
 func main() {
+
 	var st string
 	fmt.Println("Write a filename")
 	fmt.Scan(&st)
@@ -40,9 +39,9 @@ func main() {
 
 	elements := Elements{}
 	holder := Holder{}
-	holder.Value = map[string]string{}
+
 	toJson := ToJson{}
-	toJson.Value = []Holder{}
+	toJson.Value = map[string][]Holder{}
 	var keys []string
 	var all = "[\r\n"
 	for scanner.Scan() {
@@ -52,7 +51,8 @@ func main() {
 			temp = len(keys)
 		} else {
 			values := strings.Fields(scanner.Text())
-			for j := 0; j < temp; j++ {
+			holder.Value = map[string]string{}
+			for j := 0; j < temp && j < len(values); j++ {
 				holder.Value[keys[j]] = values[j]
 			}
 			jsonst, err := json.Marshal(holder.Value)
@@ -62,18 +62,17 @@ func main() {
 			fmt.Println(string(jsonst))
 			content := string(jsonst)
 			if len(scanner.Bytes()) != 0 {
-				content += ",\r\n"
+
 			}
-			//_, err = wf.Write([]byte(content))
 			all += string(content)
 			if err != nil {
 				fmt.Println("Failed Writing")
 			}
-			//toJson.Value = append(toJson.Value, holder)
 		}
 		i++
 	}
-	all += "]"
-	strings.NewReplacer("},\r\n]", "}\r\n]").Replace(all)
+	all = strings.Replace(all, "}{", "},\r\n{", -1)
+	all += "\r\n]"
+	//strings.NewReplacer("}{", "").Replace(all)
 	wf.Write([]byte(all))
 }
